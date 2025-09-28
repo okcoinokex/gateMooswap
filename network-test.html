@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gate Layer 网络测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #2563eb;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .success {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        .warning {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gate Layer 网络连接测试</h1>
+    
+    <div class="test-section">
+        <h2>1. 网络配置信息</h2>
+        <div id="networkConfig" class="result">
+            <strong>Gate Layer 网络配置:</strong><br>
+            链ID: 10088 (0x2768)<br>
+            网络名称: Gate Layer<br>
+            RPC URL: https://gatelayer-mainnet.gatenode.cc<br>
+            区块浏览器: https://www.gatescan.org/gatelayer/<br>
+            原生代币: GT (18位小数)
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. 当前网络状态</h2>
+        <button class="test-button" onclick="checkCurrentNetwork()">检查当前网络</button>
+        <div id="currentNetworkResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. 网络切换测试</h2>
+        <button class="test-button" onclick="switchToGateLayer()">切换到Gate Layer</button>
+        <button class="test-button" onclick="addGateLayerNetwork()">添加Gate Layer网络</button>
+        <div id="switchResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. 连接测试</h2>
+        <button class="test-button" onclick="testConnection()">测试RPC连接</button>
+        <div id="connectionResult" class="result"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <script>
+        const NETWORK_CONFIG = {
+            chainId: '0x2768', // 10088 in hex
+            chainName: 'Gate Layer',
+            nativeCurrency: {
+                name: 'GT',
+                symbol: 'GT',
+                decimals: 18,
+            },
+            rpcUrls: ['https://gatelayer-mainnet.gatenode.cc'],
+            blockExplorerUrls: ['https://www.gatescan.org/gatelayer/'],
+        };
+
+        let web3;
+
+        async function checkCurrentNetwork() {
+            const resultDiv = document.getElementById('currentNetworkResult');
+            resultDiv.innerHTML = '正在检查当前网络...';
+            
+            try {
+                if (typeof window.ethereum === 'undefined') {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = '❌ 未检测到MetaMask或其他Web3钱包';
+                    return;
+                }
+                
+                web3 = new Web3(window.ethereum);
+                const chainId = await web3.eth.getChainId();
+                const accounts = await web3.eth.getAccounts();
+                
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+                    ✅ 网络检查完成！<br>
+                    当前链ID: ${chainId} (0x${chainId.toString(16)})<br>
+                    期望链ID: 10088 (0x2768)<br>
+                    连接状态: ${chainId === 10088 ? '✅ 已连接到Gate Layer' : '❌ 未连接到Gate Layer'}<br>
+                    钱包账户: ${accounts.length > 0 ? accounts[0] : '未连接'}
+                `;
+                
+                if (chainId !== 10088) {
+                    resultDiv.className = 'result warning';
+                }
+                
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ 网络检查失败: ${error.message}`;
+            }
+        }
+
+        async function switchToGateLayer() {
+            const resultDiv = document.getElementById('switchResult');
+            resultDiv.innerHTML = '正在切换到Gate Layer网络...';
+            
+            try {
+                if (!window.ethereum) {
+                    throw new Error('请安装MetaMask');
+                }
+                
+                // 尝试切换到Gate Layer网络
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: NETWORK_CONFIG.chainId }],
+                });
+                
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = '✅ 已成功切换到Gate Layer网络！';
+                
+                // 重新检查网络状态
+                setTimeout(checkCurrentNetwork, 1000);
+                
+            } catch (switchError) {
+                console.error('切换网络失败:', switchError);
+                
+                if (switchError.code === 4902) {
+                    resultDiv.className = 'result warning';
+                    resultDiv.innerHTML = '⚠️ 网络不存在，请先添加Gate Layer网络';
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `❌ 切换网络失败: ${switchError.message}`;
+                }
+            }
+        }
+
+        async function addGateLayerNetwork() {
+            const resultDiv = document.getElementById('switchResult');
+            resultDiv.innerHTML = '正在添加Gate Layer网络...';
+            
+            try {
+                if (!window.ethereum) {
+                    throw new Error('请安装MetaMask');
+                }
+                
+                await window.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [NETWORK_CONFIG],
+                });
+                
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = '✅ 已成功添加Gate Layer网络！';
+                
+                // 重新检查网络状态
+                setTimeout(checkCurrentNetwork, 1000);
+                
+            } catch (addError) {
+                console.error('添加网络失败:', addError);
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ 添加网络失败: ${addError.message}`;
+            }
+        }
+
+        async function testConnection() {
+            const resultDiv = document.getElementById('connectionResult');
+            resultDiv.innerHTML = '正在测试RPC连接...';
+            
+            try {
+                // 直接连接到Gate Layer RPC
+                const testWeb3 = new Web3('https://gatelayer-mainnet.gatenode.cc');
+                
+                const chainId = await testWeb3.eth.getChainId();
+                const blockNumber = await testWeb3.eth.getBlockNumber();
+                const gasPrice = await testWeb3.eth.getGasPrice();
+                
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+                    ✅ RPC连接测试成功！<br>
+                    链ID: ${chainId}<br>
+                    最新区块: ${blockNumber}<br>
+                    Gas价格: ${testWeb3.utils.fromWei(gasPrice, 'gwei')} Gwei<br>
+                    RPC URL: https://gatelayer-mainnet.gatenode.cc
+                `;
+                
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ RPC连接测试失败: ${error.message}`;
+            }
+        }
+
+        // 页面加载时自动检查网络
+        window.addEventListener('load', checkCurrentNetwork);
+    </script>
+</body>
+</html>
+

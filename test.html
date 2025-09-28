@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GateFun DEX - 功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #5a6fd8;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .success {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+    </style>
+</head>
+<body>
+    <h1>GateFun DEX - 功能测试页面</h1>
+    
+    <div class="test-section">
+        <h2>1. Web3连接测试</h2>
+        <button class="test-button" onclick="testWeb3Connection()">测试Web3连接</button>
+        <button class="test-button" onclick="switchToGateLayer()">切换到Gate Layer</button>
+        <div id="web3Result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. 合约地址验证</h2>
+        <button class="test-button" onclick="testContractAddresses()">验证合约地址</button>
+        <div id="contractResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. 代币余额查询</h2>
+        <button class="test-button" onclick="testTokenBalance()">查询ETH余额</button>
+        <div id="balanceResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. 价格计算测试</h2>
+        <button class="test-button" onclick="testPriceCalculation()">测试价格计算</button>
+        <div id="priceResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>5. 网络信息</h2>
+        <button class="test-button" onclick="testNetworkInfo()">获取网络信息</button>
+        <div id="networkResult" class="result"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <script>
+        const NETWORK_CONFIG = {
+            chainId: '0x2768', // 10088 in hex
+            chainName: 'Gate Layer',
+            nativeCurrency: {
+                name: 'GT',
+                symbol: 'GT',
+                decimals: 18,
+            },
+            rpcUrls: ['https://gatelayer-mainnet.gatenode.cc'],
+            blockExplorerUrls: ['https://www.gatescan.org/gatelayer/'],
+        };
+
+        const CONTRACT_ADDRESSES = {
+            factory: '0xB864ada6Ad8e9b2823DD8dd8b42a0E8ED246BD1B',
+            router: '0xBC978BfDb2bfa3829fB1c3f39c61A8550B7C88E5',
+            WGT: '0x0000000000000000000000000000000000000000' // 需要实际地址
+        };
+
+        let web3;
+        let userAccount;
+
+        async function testWeb3Connection() {
+            const resultDiv = document.getElementById('web3Result');
+            resultDiv.innerHTML = '正在测试Web3连接...';
+            
+            try {
+                if (typeof window.ethereum !== 'undefined') {
+                    web3 = new Web3(window.ethereum);
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    userAccount = accounts[0];
+                    
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `✅ Web3连接成功！<br>账户: ${userAccount}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = '❌ 未检测到MetaMask或其他Web3钱包';
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ Web3连接失败: ${error.message}`;
+            }
+        }
+
+        async function testContractAddresses() {
+            const resultDiv = document.getElementById('contractResult');
+            resultDiv.innerHTML = '正在验证合约地址...';
+            
+            try {
+                if (!web3) {
+                    throw new Error('请先连接Web3');
+                }
+                
+                const factoryCode = await web3.eth.getCode(CONTRACT_ADDRESSES.factory);
+                const routerCode = await web3.eth.getCode(CONTRACT_ADDRESSES.router);
+                
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+                    ✅ 合约地址验证完成！<br>
+                    Factory: ${CONTRACT_ADDRESSES.factory}<br>
+                    Factory代码长度: ${factoryCode.length} 字符<br>
+                    Router: ${CONTRACT_ADDRESSES.router}<br>
+                    Router代码长度: ${routerCode.length} 字符
+                `;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ 合约地址验证失败: ${error.message}`;
+            }
+        }
+
+        async function testTokenBalance() {
+            const resultDiv = document.getElementById('balanceResult');
+            resultDiv.innerHTML = '正在查询余额...';
+            
+            try {
+                if (!web3 || !userAccount) {
+                    throw new Error('请先连接Web3和钱包');
+                }
+                
+                const balance = await web3.eth.getBalance(userAccount);
+                const balanceInGT = web3.utils.fromWei(balance, 'ether');
+                
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `✅ GT余额: ${parseFloat(balanceInGT).toFixed(6)} GT`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ 余额查询失败: ${error.message}`;
+            }
+        }
+
+        async function testPriceCalculation() {
+            const resultDiv = document.getElementById('priceResult');
+            resultDiv.innerHTML = '正在测试价格计算...';
+            
+            try {
+                if (!web3) {
+                    throw new Error('请先连接Web3');
+                }
+                
+                // 简化的Router ABI
+                const routerABI = [{
+                    "inputs": [
+                        {"internalType": "uint256", "name": "amountIn", "type": "uint256"},
+                        {"internalType": "address[]", "name": "path", "type": "address[]"}
+                    ],
+                    "name": "getAmountsOut",
+                    "outputs": [
+                        {"internalType": "uint256[]", "name": "amounts", "type": "uint256[]"}
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                }];
+                
+                const router = new web3.eth.Contract(routerABI, CONTRACT_ADDRESSES.router);
+                const path = [CONTRACT_ADDRESSES.WGT, '0x0000000000000000000000000000000000000000']; // WGT -> USDC
+                const amountIn = web3.utils.toWei('1', 'ether'); // 1 GT
+                
+                const amounts = await router.methods.getAmountsOut(amountIn, path).call();
+                const amountOut = web3.utils.fromWei(amounts[1], 'mwei'); // USDC是6位小数
+                
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `✅ 价格计算成功！<br>1 GT = ${parseFloat(amountOut).toFixed(2)} USDC`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ 价格计算失败: ${error.message}<br>这可能是正常的，因为代币对可能不存在`;
+            }
+        }
+
+        async function testNetworkInfo() {
+            const resultDiv = document.getElementById('networkResult');
+            resultDiv.innerHTML = '正在获取网络信息...';
+            
+            try {
+                if (!web3) {
+                    throw new Error('请先连接Web3');
+                }
+                
+                const chainId = await web3.eth.getChainId();
+                const blockNumber = await web3.eth.getBlockNumber();
+                const gasPrice = await web3.eth.getGasPrice();
+                
+                const networkNames = {
+                    1: 'Ethereum Mainnet',
+                    3: 'Ropsten Testnet',
+                    4: 'Rinkeby Testnet',
+                    5: 'Goerli Testnet',
+                    42: 'Kovan Testnet',
+                    137: 'Polygon Mainnet',
+                    56: 'BSC Mainnet',
+                    10088: 'Gate Layer'
+                };
+                
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+                    ✅ 网络信息获取成功！<br>
+                    网络: ${networkNames[chainId] || `未知网络 (${chainId})`}<br>
+                    链ID: ${chainId}<br>
+                    最新区块: ${blockNumber}<br>
+                    Gas价格: ${web3.utils.fromWei(gasPrice, 'gwei')} Gwei
+                `;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ 网络信息获取失败: ${error.message}`;
+            }
+        }
+
+        async function switchToGateLayer() {
+            const resultDiv = document.getElementById('web3Result');
+            resultDiv.innerHTML = '正在切换到Gate Layer网络...';
+            
+            try {
+                if (!window.ethereum) {
+                    throw new Error('请安装MetaMask');
+                }
+                
+                // 尝试切换到Gate Layer网络
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: NETWORK_CONFIG.chainId }],
+                });
+                
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = '✅ 已成功切换到Gate Layer网络！';
+            } catch (switchError) {
+                // 如果网络不存在，尝试添加
+                if (switchError.code === 4902) {
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [NETWORK_CONFIG],
+                        });
+                        
+                        resultDiv.className = 'result success';
+                        resultDiv.innerHTML = '✅ 已添加并切换到Gate Layer网络！';
+                    } catch (addError) {
+                        resultDiv.className = 'result error';
+                        resultDiv.innerHTML = `❌ 添加网络失败: ${addError.message}`;
+                    }
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `❌ 切换网络失败: ${switchError.message}`;
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GateMoo Dex - 去中心化交易所</title>
+    <link rel="icon" type="image/png" href="Gatemoo21.png">
+    <link rel="shortcut icon" type="image/png" href="Gatemoo21.png">
+    <link rel="apple-touch-icon" href="Gatemoo21.png">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- From Uiverse.io by SelfMadeSystem --> 
+    <div class="container"></div>
+    <div class="app">
+        <!-- 导航栏 -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <img src="Gatemoo21.png" alt="Gatemoo" class="logo-icon">
+                    <span>GateMoo Dex</span>
+                </div>
+                
+                <!-- 移动端菜单按钮 -->
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <div class="nav-menu" id="navMenu">
+                    <button class="nav-btn active" data-tab="swap">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span class="nav-text">Swap</span>
+                    </button>
+                    <button class="nav-btn" data-tab="liquidity">
+                        <i class="fas fa-plus-circle"></i>
+                        <span class="nav-text">Liquidity</span>
+                    </button>
+                </div>
+                <div class="nav-actions" id="navActions">
+                    <button class="language-btn" id="languageBtn">
+                        <i class="fas fa-globe"></i>
+                        <span id="languageText">中文</span>
+                    </button>
+                    <button class="network-btn" id="networkBtn">
+                        <i class="fas fa-network-wired"></i>
+                        <span id="networkName">Gate Layer</span>
+                    </button>
+                    <button class="nav-wallet-btn" id="connectWallet">
+                        <i class="fas fa-wallet"></i>
+                        <span class="btn-text">Connect Wallet</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 主要内容区域 -->
+        <main class="main-content">
+            <!-- Swap 界面 -->
+            <div class="tab-content active" id="swap-tab">
+                <div class="swap-container">
+                    <input type="checkbox" id="swap_toggle">
+                    <div class="swap-form">
+                        <div class="form_front">
+                            <div class="form_details">Swap Tokens</div>
+                        <!-- 输入代币 -->
+                        <div class="token-input">
+                            <div class="token-input-header">
+                                <span>From</span>
+                                <span class="balance" id="fromBalance">Balance: 0</span>
+                            </div>
+                            <div class="token-input-body">
+                                <div class="token-select" id="fromTokenSelect">
+                                    <div class="token-info">
+                                        <img src="gt-logo.png" alt="GT" class="token-icon">
+                                        <span class="token-symbol">GT</span>
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                </div>
+                                <div class="amount-input">
+                                    <div class="percentage-selector">
+                                        <button class="percentage-btn" data-percentage="25">25%</button>
+                                        <button class="percentage-btn" data-percentage="50">50%</button>
+                                        <button class="percentage-btn" data-percentage="75">75%</button>
+                                        <button class="percentage-btn" data-percentage="100">Max</button>
+                                    </div>
+                                    <input type="number" id="fromAmount" placeholder="0.0" step="0.000001">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 交换按钮 -->
+                        <div class="swap-arrow">
+                            <button class="swap-btn" id="swapTokensBtn">
+                                <i class="fas fa-arrow-down"></i>
+                            </button>
+                        </div>
+
+                        <!-- 输出代币 -->
+                            <div class="token-input">
+                                <div class="token-input-header">
+                                    <span>To</span>
+                                    <span class="balance" id="toBalance">Balance: 0</span>
+                                </div>
+                                <div class="token-input-body">
+                                    <div class="token-select" id="toTokenSelect">
+                                        <div class="token-info select-token-btn">
+                                            <span class="select-token-text" data-text-zh="选择代币" data-text-en="Select Token">Select Token</span>
+                                            <i class="fas fa-chevron-down"></i>
+                                        </div>
+                                    </div>
+                                    <div class="amount-input">
+                                        <div class="percentage-selector" style="visibility: hidden;">
+                                            <button class="percentage-btn" data-percentage="25">25%</button>
+                                            <button class="percentage-btn" data-percentage="50">50%</button>
+                                            <button class="percentage-btn" data-percentage="75">75%</button>
+                                            <button class="percentage-btn" data-percentage="100">Max</button>
+                                        </div>
+                                        <input type="number" id="toAmount" placeholder="0.0" step="0.000001" style="display: none;">
+                                        <div id="toAmountDisplay" class="amount-display">0.0</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        <!-- 价格信息 -->
+                        <div class="price-info" id="priceInfo">
+                            <div class="price-row">
+                                <div class="price-item">
+                                    <span>Price</span>
+                                    <span id="currentPrice">1 GT = 1.0 WGT</span>
+                                </div>
+                                <div class="price-item">
+                                    <span>Slippage</span>
+                                    <span id="slippage">10%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 警告提示示例 -->
+                        <div class="alert alert-warning alert-dismissible" id="slippageWarning" style="display: none;">
+                            <i class="fas fa-exclamation-triangle alert-icon"></i>
+                            <div class="alert-content">
+                                <div class="alert-title">滑点警告</div>
+                                <p class="alert-message">当前滑点设置较高，可能导致交易价格偏差较大。建议调整滑点设置。</p>
+                            </div>
+                            <button class="alert-close" onclick="this.parentElement.style.display='none'">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+
+                        <div class="alert alert-info" id="priceImpactInfo" style="display: none;">
+                            <i class="fas fa-info-circle alert-icon"></i>
+                            <div class="alert-content">
+                                <div class="alert-title">价格影响</div>
+                                <p class="alert-message">大额交易可能对市场价格产生影响，请注意交易时机。</p>
+                            </div>
+                        </div>
+
+                        <!-- 交换按钮 -->
+                        <button class="swap-action-btn" id="swapActionBtn">
+                            <i class="fas fa-exchange-alt"></i>
+                            Swap
+                        </button>
+                        <span class="switch">Slippage Settings?
+                            <button class="settings-btn" id="swapSettings">
+                                <i class="fas fa-cog"></i>
+                                Settings
+                            </button>
+                        </span>
+                        </div>
+                            <div class="form_back">
+                            <div class="form_details">Slippage Settings</div>
+                            <div class="setting-item">
+                                <label data-text-zh="滑点容忍度" data-text-en="Slippage Tolerance">Slippage Tolerance</label>
+                                <div class="slippage-options">
+                                    <button class="slippage-btn" data-slippage="1">1%</button>
+                                    <button class="slippage-btn" data-slippage="5">5%</button>
+                                    <button class="slippage-btn" data-slippage="10">10%</button>
+                                    <button class="slippage-btn" data-slippage="25">25%</button>
+                                    <button class="slippage-btn" data-slippage="49">49%</button>
+                                </div>
+                            </div>
+                            <div class="setting-item">
+                                <label data-text-zh="交易截止时间" data-text-en="Transaction Deadline">Transaction Deadline</label>
+                                <input type="number" id="deadline" value="20" min="1" max="4320">
+                                <span data-text-zh="分钟" data-text-en="minutes">minutes</span>
+                            </div>
+                            <span class="switch">Back to Swap? 
+                                <label class="signup_tog" for="swap_toggle">
+                                    Swap
+                                </label>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 流动性界面 -->
+            <div class="tab-content" id="liquidity-tab">
+                <div class="liquidity-container">
+                    <input type="checkbox" id="liquidity_toggle">
+                    <div class="liquidity-form">
+                        <div class="form_front">
+                            <div class="form_details">Add Liquidity</div>
+                        <!-- 代币A输入 -->
+                        <div class="token-input">
+                            <div class="token-input-header">
+                                <span>Token A</span>
+                                <span class="balance" id="liquidityABalance">Balance: 0</span>
+                            </div>
+                            <div class="token-input-body">
+                                <div class="token-select" id="liquidityATokenSelect">
+                                    <div class="token-info">
+                                        <img src="gt-logo.png" alt="GT" class="token-icon">
+                                        <span class="token-symbol">GT</span>
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                </div>
+                                <div class="amount-input">
+                                    <input type="number" id="liquidityAAmount" placeholder="0.0" step="0.000001">
+                                    <button class="max-btn" id="liquidityAMaxBtn">Max</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 加号 -->
+                        <div class="liquidity-plus">
+                            <i class="fas fa-plus"></i>
+                        </div>
+
+                        <!-- 代币B输入 -->
+                        <div class="token-input">
+                            <div class="token-input-header">
+                                <span>Token B</span>
+                                <span class="balance" id="liquidityBBalance">Balance: 0</span>
+                            </div>
+                            <div class="token-input-body">
+                                <div class="token-select" id="liquidityBTokenSelect">
+                                    <div class="token-info select-token-btn">
+                                        <span class="select-token-text" data-text-zh="选择代币" data-text-en="Select Token">Select Token</span>
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                </div>
+                                <div class="amount-input">
+                                    <input type="number" id="liquidityBAmount" placeholder="0.0" step="0.000001">
+                                    <button class="max-btn" id="liquidityBMaxBtn">Max</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 流动性信息 -->
+                        <div class="liquidity-info" id="liquidityInfo">
+                            <div class="info-row">
+                                <span>价格</span>
+                                <span id="liquidityPrice">1 GT = 1.0 WGT</span>
+                            </div>
+                            <div class="info-row">
+                                <span>份额</span>
+                                <span id="liquidityShare">0.00%</span>
+                            </div>
+                        </div>
+
+                        <!-- 流动性警告提示 -->
+                        <div class="alert alert-warning" id="liquidityWarning" style="display: none;">
+                            <i class="fas fa-exclamation-triangle alert-icon"></i>
+                            <div class="alert-content">
+                                <div class="alert-title">Liquidity Risk</div>
+                                <p class="alert-message">Adding liquidity involves impermanent loss risk. Please ensure you understand the risks before proceeding.</p>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-success" id="liquiditySuccess" style="display: none;">
+                            <i class="fas fa-check-circle alert-icon"></i>
+                            <div class="alert-content">
+                                <div class="alert-title">Liquidity Added Successfully</div>
+                                <p class="alert-message">Your liquidity has been successfully added to the pool. You can now start earning trading fees.</p>
+                            </div>
+                        </div>
+
+                        <!-- 添加流动性按钮 -->
+                        <button class="liquidity-action-btn" id="addLiquidityBtn">
+                            <i class="fas fa-plus-circle"></i>
+                            Add Liquidity
+                        </button>
+                        <span class="switch">Need to remove liquidity? 
+                            <label class="signup_tog" for="liquidity_toggle">
+                                Remove
+                            </label>
+                        </span>
+                        </div>
+                        <div class="form_back">
+                            <div class="form_details">Remove Liquidity</div>
+                            
+                            <!-- 搜索流动性 -->
+                            <div class="liquidity-search-section">
+                                <div class="search-liquidity-header">
+                                    <span>Search Liquidity Pool</span>
+                                </div>
+                                <div class="liquidity-pair-input">
+                                    <div class="token-input">
+                                        <div class="token-input-header">
+                                            <span>Token A</span>
+                                        </div>
+                                        <div class="token-input-body">
+                                            <div class="token-select" id="searchTokenASelect">
+                                                <div class="token-info select-token-btn">
+                                                    <span class="select-token-text" data-text-zh="选择代币" data-text-en="Select Token">Select Token</span>
+                                                    <i class="fas fa-chevron-down"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="liquidity-plus">
+                                        <i class="fas fa-plus"></i>
+                                    </div>
+                                    
+                                    <div class="token-input">
+                                        <div class="token-input-header">
+                                            <span>Token B</span>
+                                        </div>
+                                        <div class="token-input-body">
+                                            <div class="token-select" id="searchTokenBSelect">
+                                                <div class="token-info select-token-btn">
+                                                    <span class="select-token-text" data-text-zh="选择代币" data-text-en="Select Token">Select Token</span>
+                                                    <i class="fas fa-chevron-down"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <button class="search-liquidity-btn" id="searchLiquidityBtn">
+                                    <i class="fas fa-search"></i>
+                                    Search Pool
+                                </button>
+                                
+                                <div class="liquidity-pool-result" id="liquidityPoolResult" style="display: none;">
+                                    <div class="pool-info">
+                                        <div class="pool-pair">
+                                            <span class="pool-tokens">GT/WGT</span>
+                                            <span class="pool-fee">0.3%</span>
+                                        </div>
+                                        <div class="pool-details">
+                                            <div class="pool-detail-row">
+                                                <span>Total Liquidity</span>
+                                                <span id="totalLiquidity">$1,234,567</span>
+                                            </div>
+                                            <div class="pool-detail-row">
+                                                <span>Your LP Tokens</span>
+                                                <span id="userLPTokens">0 LP</span>
+                                            </div>
+                                            <div class="pool-detail-row">
+                                                <span>Your Share</span>
+                                                <span id="userShare">0.00%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="liquidity-token-input">
+                                <div class="token-input-header">
+                                    <span>LP Token</span>
+                                    <span class="balance" id="lpTokenBalance">Balance: 0</span>
+                                </div>
+                                <div class="token-input-body">
+                                    <div class="token-select" id="lpTokenSelect">
+                                        <div class="token-info">
+                                            <img src="Gatemoo21.png" alt="LP" class="token-icon">
+                                            <span class="token-symbol">LP</span>
+                                            <i class="fas fa-chevron-down"></i>
+                                        </div>
+                                    </div>
+                                    <div class="amount-input">
+                                        <div class="percentage-selector">
+                                            <button class="percentage-btn" data-percentage="25">25%</button>
+                                            <button class="percentage-btn" data-percentage="50">50%</button>
+                                            <button class="percentage-btn" data-percentage="75">75%</button>
+                                            <button class="percentage-btn" data-percentage="100">Max</button>
+                                        </div>
+                                        <input type="number" id="lpTokenAmount" placeholder="0.0" step="0.000001" style="display: none;">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="remove-liquidity-info" id="removeLiquidityInfo">
+                                <div class="info-row">
+                                    <span>You will receive</span>
+                                    <span id="removeTokenA">0 GT</span>
+                                </div>
+                                <div class="info-row">
+                                    <span>You will receive</span>
+                                    <span id="removeTokenB">0 WGT</span>
+                                </div>
+                            </div>
+                            
+                            <button class="liquidity-action-btn remove-btn" id="removeLiquidityBtn">
+                                <i class="fas fa-minus-circle"></i>
+                                Remove Liquidity
+                            </button>
+                            <span class="switch">Back to add liquidity?
+                                <label class="signup_tog" for="liquidity_toggle">
+                                    Add
+                                </label>
+                            </span>
+                            <button class="settings-btn" id="liquiditySettings">
+                                <i class="fas fa-cog"></i>
+                                Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 代币选择模态框 -->
+        <div class="modal" id="tokenModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 data-text-zh="选择代币" data-text-en="Select Token">Select Token</h3>
+                    <button class="close-btn" id="closeTokenModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="search-box">
+                        <input type="text" id="tokenSearch" placeholder="Search token name or contract address" data-placeholder-en="Search token name or contract address" data-placeholder-zh="搜索代币名称或合约地址">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div class="token-list" id="tokenList">
+                        <!-- 常用代币 -->
+                        <div class="token-item" data-address="0x0000000000000000000000000000000000000000" data-symbol="GT" data-decimals="18">
+                            <img src="gt-logo.png" alt="GT" class="token-icon">
+                            <div class="token-details">
+                                <span class="token-symbol">GT</span>
+                                <span class="token-name">Gate Token</span>
+                            </div>
+                        </div>
+                        <div class="token-item" data-address="0x1234567890123456789012345678901234567890" data-symbol="WGT" data-decimals="18">
+                            <img src="Gatemoo21.png" alt="WGT" class="token-icon">
+                            <div class="token-details">
+                                <span class="token-symbol">WGT</span>
+                                <span class="token-name">Wrapped Gate Token</span>
+                            </div>
+                        </div>
+                        <div class="token-item" data-address="0x57Cc62Ff694971f93C66baFE83E8862b7B109D75" data-symbol="GMOO" data-decimals="18">
+                            <img src="GMOO.png" alt="GMOO" class="token-icon">
+                            <div class="token-details">
+                                <span class="token-symbol">GMOO</span>
+                                <span class="token-name">GMOO Token</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 设置模态框 -->
+        <div class="modal" id="settingsModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 data-text-zh="交易设置" data-text-en="Trading Settings">Trading Settings</h3>
+                    <button class="close-btn" id="closeSettingsModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="setting-item">
+                        <label data-text-zh="滑点容忍度" data-text-en="Slippage Tolerance">Slippage Tolerance</label>
+                        <div class="slippage-options">
+                            <button class="slippage-btn" data-slippage="1">1%</button>
+                            <button class="slippage-btn" data-slippage="5">5%</button>
+                            <button class="slippage-btn" data-slippage="10">10%</button>
+                            <button class="slippage-btn" data-slippage="25">25%</button>
+                            <button class="slippage-btn" data-slippage="49">49%</button>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <label data-text-zh="交易截止时间" data-text-en="Transaction Deadline">Transaction Deadline</label>
+                        <input type="number" id="modalDeadline" value="20" min="1" max="4320">
+                        <span data-text-zh="分钟" data-text-en="minutes">minutes</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 加载遮罩 -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-spinner">
+                <!-- From Uiverse.io by PriyanshuGupta28 -->
+                <div class="ai-matrix-loader">
+                    <div class="digit">0</div>
+                    <div class="digit">1</div>
+                    <div class="digit">0</div>
+                    <div class="digit">1</div>
+                    <div class="digit">1</div>
+                    <div class="digit">0</div>
+                    <div class="digit">0</div>
+                    <div class="digit">1</div>
+                    <div class="glow"></div>
+                </div>
+                <p>处理交易中...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <script src="languages.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
